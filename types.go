@@ -48,3 +48,8 @@ func (mds *mockDataStore) ReadData(profileID string, skillName string) (skillSco
 
 	return skill, true
 }
+
+type skillScoreMessage struct {
+	ProfileID string `json:"profile_id"`
+	SkillName string `json:"skill_name"`
+}
