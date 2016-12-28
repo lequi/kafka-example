@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+  kafka:
+    environment:
+      - ADVERTISED_HOST=127.0.0.1
+      - ADVERTISED_PORT=9092
+      - NUM_PARTITIONS=10
+    image: spotify/kafka
+    ports:
+      - 2181:2181
+      - 9092:9092
+    networks:
+      - test-network
+networks:
+  test-network:
+    driver: bridge
