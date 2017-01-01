@@ -19,14 +19,27 @@ func main() {
 	// Seed for fake skill score
 	rand.Seed(time.Now().Unix())
 
+	ds := &mockDataStore{}
+	addFakeData(ds)
+
+
 	producer, err := createKafkaProducer("127.0.0.1:9092")
 
 	if err != nil {
 		log.Fatal("Failed to connect to Kafka")
 	}
+
+	//Ensures that the topic has been created in kafka
+	producer.Input() <- &sarama.ProducerMessage{
+		Key: sarama.StringEncoder("init"),
+		Topic: topicName,
+		Timestamp: time.Now(),
+	}
+
+	go func(){
+		consumeMessages("127.0.0.1:2181", msgHandler(ds))
+	}()
 	
-	ds := &mockDataStore{}
-	addFakeData(ds)
 	http.Handle("/api/skills", httpHandlers(ds, producer.Input()))
 	log.Println("Listening on", hostPort)
 	http.ListenAndServe(fmt.Sprintf(":%s", hostPort), nil)
@@ -77,7 +90,7 @@ func postHandler(c chan <- *sarama.ProducerMessage, w http.ResponseWriter, r *ht
 		processSkill(c, reqBody.ID, skill)
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func processSkill(c chan <- *sarama.ProducerMessage, userID string, skillName string) {
@@ -119,3 +132,31 @@ func getHandler(ds *mockDataStore, w http.ResponseWriter, r * http.Request) {
 	}
 }
 
+func msgHandler(ds *mockDataStore) func(m *sarama.ConsumerMessage) error {
+	return func(m *sarama.ConsumerMessage) error {
+		// Empty body means it is an init message
+		if len(m.Value) == 0 {
+			return nil
+		}
+
+		skillMsg := &skillScoreMessage{}
+		e := json.Unmarshal(m.Value, skillMsg)
+
+		if e != nil {
+			return e
+		}
+
+		//Simulate processing time
+		time.Sleep(5 * time.Second)
+		log.Printf("Adding skill %s to user %s", skillMsg.SkillName, skillMsg.ProfileID)
+
+		score := skillScore{
+			SkillName:  skillMsg.SkillName,
+			Score:      rand.Float32() * 100,
+			LastScored: time.Now(),
+		}
+
+		ds.WriteData(skillMsg.ProfileID, score)
+		return nil
+	}
+}
