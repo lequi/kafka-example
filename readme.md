@@ -58,7 +58,7 @@ Issuing a get request to
 
 should return an object like
 
-```javascript
+```
 {
   "skill_name": "ReactJS",
   "score": 6.260835,
