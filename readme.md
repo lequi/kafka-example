@@ -37,7 +37,7 @@ I personally used Postman to test the service, but feel free to use what ever
 you prefer.
 
 Posting and object to ```http://localhost:3000/api/skills``` with this shape
-```javascript
+```
 { 
     "id":"user1", 
     "skills":[
