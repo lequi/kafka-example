@@ -54,7 +54,9 @@ window
 
 Issuing a get request to 
 
-```http://localhost:3000/api/skills?userID=user1&skill=ReactJS```
+```
+http://localhost:3000/api/skills?userID=user1&skill=ReactJS
+```
 
 should return an object like
 
