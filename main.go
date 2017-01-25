@@ -36,6 +36,15 @@ func main() {
 		Timestamp: time.Now(),
 	}
 
+	log.Println("Creating Topic...")
+	time.Sleep(1 * time.Second)
+	/*
+		This quick sleep allows the async producer some processing time to fire off the init message above to
+		Kafka, since Go concurrency works on scheduling not threads.  Hmm... that may be another good topic for
+		a blog post.
+	*/
+
+
 	go func(){
 		consumeMessages("127.0.0.1:2181", msgHandler(ds))
 	}()
@@ -147,7 +156,7 @@ func msgHandler(ds *mockDataStore) func(m *sarama.ConsumerMessage) error {
 		}
 
 		//Simulate processing time
-		time.Sleep(5 * time.Second)
+		time.Sleep(1 * time.Second)
 		log.Printf("Adding skill %s to user %s", skillMsg.SkillName, skillMsg.ProfileID)
 
 		score := skillScore{
